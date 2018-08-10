@@ -12,6 +12,8 @@ namespace AviAnalyzer.Models
 
         public string FourCC { get; }
 
+        public virtual int DataLength => _length;
+
         public Chunk(Stream stream, int offset, int length, string fourCC)
         {
             _stream = stream;
@@ -22,7 +24,7 @@ namespace AviAnalyzer.Models
 
         public override string ToString()
         {
-            return $"{FourCC}: {_offset:X2} -> {_offset + _length + 8:X2}({_length + 8:X2}): {_offset + 8:X2}({_length:X2})";
+            return $"{FourCC}: {_offset:X8} -> {_offset + _length + 8:X8}({_length + 8:X8}): {_offset + 8:X8}({_length:X8})";
         }
     }
 }

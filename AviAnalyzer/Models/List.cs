@@ -11,6 +11,8 @@ namespace AviAnalyzer.Models
 
         public List<Chunk> Chunks { get; }
 
+        public override int DataLength => _length - 4;
+
         public List(Stream stream, int offset, int length, string fourCC, string listFourCC) : base(stream, offset, length, fourCC)
         {
             ListFourCC = listFourCC;
@@ -67,7 +69,7 @@ namespace AviAnalyzer.Models
 
         public override string ToString()
         {
-            return $"{FourCC}({ListFourCC}): {_offset:X2} -> {_offset + _length + 8:X2}({_length + 8:X2}): {_offset + 12:X2}({_length - 4:X2})";
+            return $"{FourCC}({ListFourCC}): {_offset:X8} -> {_offset + _length + 8:X8}({_length + 8:X8}): {_offset + 12:X8}({_length - 4:X8})";
         }
     }
 }
