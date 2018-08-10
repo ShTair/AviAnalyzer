@@ -1,5 +1,4 @@
 ﻿using AviAnalyzer.Models;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace AviAnalyzer
@@ -15,10 +14,7 @@ namespace AviAnalyzer
 
         private static async Task Run(string target)
         {
-            using (var stream = File.Open(target, FileMode.Open))
-            {
-                var list = await List.Parse(stream);
-            }
+            var list = await List.ParseAsync(target);
         }
     }
 }

@@ -17,7 +17,15 @@ namespace AviAnalyzer.Models
             Chunks = new List<Chunk>();
         }
 
-        public static async Task<List> Parse(Stream stream)
+        public static async Task<List> ParseAsync(string fileName)
+        {
+            using (var stream = File.Open(fileName, FileMode.Open))
+            {
+                return await ParseAsync(stream);
+            }
+        }
+
+        public static async Task<List> ParseAsync(Stream stream)
         {
             var listFourCC = await stream.ReadFourCCAsync(0);
             var length = await stream.ReadInt32Async(4);
