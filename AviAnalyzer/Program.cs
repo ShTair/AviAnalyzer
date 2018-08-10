@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AviAnalyzer.Models;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,8 @@ namespace AviAnalyzer
         {
             using (var stream = File.Open(target, FileMode.Open))
             {
-                await ReadChunk(stream, 0, "");
+                var list = await List.Parse(stream);
+                //await ReadChunk(stream, 0, "");
             }
         }
 

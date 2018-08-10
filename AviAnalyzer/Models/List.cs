@@ -12,9 +12,19 @@ namespace AviAnalyzer.Models
 
         public List(Stream stream, int offset, int length, string listFourCC) : base(stream, offset, length) { }
 
-        public async Task ParseChildren(Stream stream)
+        public static async Task<List> Parse(Stream stream)
         {
-            FourCC = await stream.ReadFourCCAsync(_offset);
+            var fourCC = await stream.ReadFourCCAsync(0);
+            var length = await stream.ReadInt32Async(4);
+
+            var list = new List(stream, 0, length, fourCC);
+            await list.ParseChildren(stream);
+            return list;
+        }
+
+        private async Task ParseChildren(Stream stream)
+        {
+            FourCC = await stream.ReadFourCCAsync(_offset + 8);
 
             int current = 4;
             while (current < _length)
