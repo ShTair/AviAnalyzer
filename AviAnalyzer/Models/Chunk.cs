@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace AviAnalyzer.Models
 {
@@ -20,6 +21,12 @@ namespace AviAnalyzer.Models
             _offset = offset;
             _length = length;
             FourCC = fourCC;
+        }
+
+        public async Task<int> ReadDataAsync(byte[] buffer, int offset)
+        {
+            _stream.Seek(_offset + 8, SeekOrigin.Begin);
+            return await _stream.ReadAsync(buffer, offset, DataLength);
         }
 
         public override string ToString()

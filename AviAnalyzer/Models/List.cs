@@ -21,10 +21,8 @@ namespace AviAnalyzer.Models
 
         public static async Task<List> ParseAsync(string fileName)
         {
-            using (var stream = File.Open(fileName, FileMode.Open))
-            {
-                return await ParseAsync(stream);
-            }
+            var stream = File.Open(fileName, FileMode.Open);
+            return await ParseAsync(stream);
         }
 
         public static async Task<List> ParseAsync(Stream stream)
