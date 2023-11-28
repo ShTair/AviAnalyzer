@@ -1,73 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+﻿namespace AviAnalyzer.Models;
 
-namespace AviAnalyzer.Models
+class List(Stream stream, int offset, int length, string fourCC, string listFourCC) : Chunk(stream, offset, length, fourCC)
 {
-    class List : Chunk
+    public string ListFourCC { get; } = listFourCC;
+
+    public List<Chunk> Chunks { get; } = [];
+
+    public override int DataLength => _length - 4;
+
+    public static async Task<List> ParseAsync(string fileName)
     {
-        public string ListFourCC { get; }
+        var stream = File.Open(fileName, FileMode.Open);
+        return await ParseAsync(stream);
+    }
 
-        public List<Chunk> Chunks { get; }
+    public static async Task<List> ParseAsync(Stream stream)
+    {
+        var listFourCC = await stream.ReadFourCCAsync(0);
+        var length = await stream.ReadInt32Async(4);
+        var fourCC = await stream.ReadFourCCAsync(8);
 
-        public override int DataLength => _length - 4;
+        var list = new List(stream, 0, length, fourCC, listFourCC);
+        //Console.WriteLine(list);
+        await list.ParseChildren(stream, " ");
+        return list;
+    }
 
-        public List(Stream stream, int offset, int length, string fourCC, string listFourCC) : base(stream, offset, length, fourCC)
+    private async Task ParseChildren(Stream stream, string indent)
+    {
+        int current = 4;
+        while (current < _length)
         {
-            ListFourCC = listFourCC;
-            Chunks = new List<Chunk>();
-        }
+            var fourCC = await stream.ReadFourCCAsync(_offset + 8 + current);
+            var length = await stream.ReadInt32Async(_offset + 8 + current + 4);
 
-        public static async Task<List> ParseAsync(string fileName)
-        {
-            var stream = File.Open(fileName, FileMode.Open);
-            return await ParseAsync(stream);
-        }
-
-        public static async Task<List> ParseAsync(Stream stream)
-        {
-            var listFourCC = await stream.ReadFourCCAsync(0);
-            var length = await stream.ReadInt32Async(4);
-            var fourCC = await stream.ReadFourCCAsync(8);
-
-            var list = new List(stream, 0, length, fourCC, listFourCC);
-            Console.WriteLine(list);
-            await list.ParseChildren(stream, " ");
-            return list;
-        }
-
-        private async Task ParseChildren(Stream stream, string indent)
-        {
-            int current = 4;
-            while (current < _length)
+            if (fourCC == "RIFF" || fourCC == "LIST")
             {
-                var fourCC = await stream.ReadFourCCAsync(_offset + 8 + current);
-                var length = await stream.ReadInt32Async(_offset + 8 + current + 4);
+                var realFourCC = await stream.ReadFourCCAsync(_offset + 8 + current + 8);
+                var list = new List(stream, _offset + 8 + current, length, realFourCC, fourCC);
+                //Console.WriteLine(indent + list);
 
-                if (fourCC == "RIFF" || fourCC == "LIST")
-                {
-                    var realFourCC = await stream.ReadFourCCAsync(_offset + 8 + current + 8);
-                    var list = new List(stream, _offset + 8 + current, length, realFourCC, fourCC);
-                    Console.WriteLine(indent + list);
-
-                    await list.ParseChildren(stream, indent + " ");
-                    Chunks.Add(list);
-                }
-                else
-                {
-                    var chunk = new Chunk(stream, _offset + 8 + current, length, fourCC);
-                    Console.WriteLine(indent + chunk);
-                    Chunks.Add(chunk);
-                }
-
-                current += 8 + length;
+                await list.ParseChildren(stream, indent + " ");
+                Chunks.Add(list);
             }
-        }
+            else
+            {
+                var chunk = new Chunk(stream, _offset + 8 + current, length, fourCC);
+                //Console.WriteLine(indent + chunk);
+                Chunks.Add(chunk);
+            }
 
-        public override string ToString()
-        {
-            return $"{FourCC}({ListFourCC}): {_offset:X8} -> {_offset + _length + 8:X8}({_length + 8:X8}): {_offset + 12:X8}({_length - 4:X8})";
+            current += 8 + length;
         }
+    }
+
+    public override string ToString()
+    {
+        return $"{FourCC}({ListFourCC}): {_offset:X8} -> {_offset + _length + 8:X8}({_length + 8:X8}): {_offset + 12:X8}({_length - 4:X8})";
     }
 }
